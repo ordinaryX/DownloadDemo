@@ -1,34 +1,31 @@
 package com.example.hyx.downloadfile;
 
 import android.Manifest;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.graphics.BitmapFactory;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.text.TextUtils;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    private DownloadService.DownloadBinder downloadBinder;
+    private EditText mEdittext;
+
+    private DownloadService.DownloadBinder mDownloadBinder;
 
     ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            downloadBinder = (DownloadService.DownloadBinder) service;
+            mDownloadBinder = (DownloadService.DownloadBinder) service;
         }
 
         @Override
@@ -37,12 +34,11 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private String url = "http://192.168.9.67:8080/visitshop/img/PhotoshopCC.zip";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mEdittext = findViewById(R.id.edittext);
         Intent intent = new Intent(this,DownloadService.class);
         startService(intent);
         bindService(intent,connection,BIND_AUTO_CREATE);
@@ -54,16 +50,18 @@ public class MainActivity extends AppCompatActivity {
 
         switch (view.getId()){
             case R.id.btn_start:
-//                Intent intent = new Intent(this,DownloadService.class);
-//                startService(intent);
-//                bindService(intent,connection,BIND_AUTO_CREATE);
-                downloadBinder.startDownload(url);
+                String url = mEdittext.getText().toString();
+                if (TextUtils.isEmpty(url)){
+                    Toast.makeText(this, "URL 不可用！", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                mDownloadBinder.startDownload(url);
                 break;
             case R.id.btn_cancel:
-                downloadBinder.cancelDownload();
+                mDownloadBinder.cancelDownload();
                 break;
             case R.id.btn_pause:
-                downloadBinder.pauseDownload();
+                mDownloadBinder.pauseDownload();
                 break;
         }
     }
